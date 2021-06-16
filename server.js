@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const formidable = require('express-formidable');
 const uniqid = require('uniqid');
 const connectToDB = require('./db');
+const requestIP = require('request-ip');
 
 // start express server
 const app = express();
@@ -27,6 +28,7 @@ app.use(formidable({ uploadDir: './public/uploads/' }, [{
 ]));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(requestIP.mw());
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '/public')));

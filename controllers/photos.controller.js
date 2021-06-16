@@ -1,4 +1,5 @@
 const Photo = require('../models/photo.model');
+const Voter = require('../models/voter.model');
 
 /****** SUBMIT PHOTO ********/
 
@@ -62,6 +63,23 @@ exports.vote = async (req, res) => {
     const photoToUpdate = await Photo.findOne({ _id: req.params.id });
     if(!photoToUpdate) res.status(404).json({ message: 'Not found' });
     else {
+      const activeVoters = await Voter.findOne({ user: req.clientIp });
+      
+      if (!activeVoters) {
+        const newVoter = new Voter({ user: req.clientIp, votes: [ photoToUpdate._id ] });
+        await newVoter.save();
+      }
+      else {
+        
+        if (activeVoters.votes.includes(photoToUpdate._id)) {
+          throw new Error('Cannot voting twice');
+        }
+        else {
+          activeVoters.votes.push(photoToUpdate._id);
+          await activeVoters.save();
+        }
+      }
+
       photoToUpdate.votes++;
       photoToUpdate.save();
       res.send({ message: 'OK' });
